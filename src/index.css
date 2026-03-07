@@ -1,0 +1,127 @@
+#root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 700px;
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+header {
+  display: flex;
+  align-items: centers;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+img {
+  display: block;
+  aspect-ratio: auto;
+  max-height: 15vh;
+  width: auto;
+  height: auto;
+  margin: 1rem;
+}
+.modal-underlay {
+  position: absolute;
+  inset: 0;
+  background: grey;
+  opacity: 0.8;
+  z-index: 99;
+  border: none;
+  width: 100%;
+  box-shadow: unset;
+}
+
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+.modal-content {
+  position: relative;
+  z-index: 101;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: 400px;
+  border: 1px solid black;
+  background: white;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  /* align-items: center;
+  justify-content: center; */
+  gap: 1rem;
+}
+hr {
+  background-color:grey;
+  height: 1px;
+  display: block;
+  width: 96%;
+ }
+.graph {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.roll {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items:center;
+
+}
+.roll-button {
+  margin: 2px;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 7px;
+
+}
+.roll-button:hover {
+  box-shadow: 5px;
+  background-color: lightgray;
+  border-radius: 7px;
+}
+.roll-button-selected {
+  margin: 2px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 5px;
+  background-color: lightgray;
+  border-radius: 7px;
+
+}
+.submit-roll-button {
+  margin: 2px;
+  width: 100%;
+  max-width: 200px;
+  background-color: #15aee8;
+  border-radius: 7px;
+}
+.submit-roll-button:hover {
+  box-shadow: 5px;
+  background-color: #1499ca;
+  border-radius: 7px;
+}
