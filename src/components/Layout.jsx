@@ -11,7 +11,7 @@ export default function Layout(props) {
             <div>
                 <h1>GPC Kids</h1>
                 <p>The attendance tracker for Glendowie Presbyterian Church </p>
-                {globalUser ? (<button onClick={logout}>Logout</button>):''}
+                {globalUser ? (<button class="logout-button" onClick={logout}>Logout</button>):''}
             </div>
             <img src={download}/>
         </header>
@@ -19,7 +19,7 @@ export default function Layout(props) {
 
     const footer = (
         <footer>
-            <p>Footer</p>
+            <p>Glendowie Presbyterian Church 2026</p>
         </footer>
     )
     return (

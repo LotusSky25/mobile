@@ -11,7 +11,10 @@ export default function Input(){
     const [selectedButtons, setSelectedButtons] = useState(new Set())
     const [isSubmitted, setIsSubmitted] = useState(false)
     const [targetGroup, setTargetGroup] = useState("")
+    const [showGroups, setShowGroups] = useState(true)
+    const [name, setName] = useState("")
     const [groups, setGroups] = useState([])
+    const [addNewStudent, setAddNewStudent] = useState(false)
     const {session} = useAuth()
     const multiselectOption = (option) => {
         //copy existing set
@@ -70,9 +73,11 @@ export default function Input(){
                 //update each student's  
                  roll.forEach(async(student) => {
                     const pRef = doc(db, "students", student.name, "history", "DEMO")
+                    const timestamp = Date.now()
                     const pRes = await setDoc(pRef, {
-                        attended: session
-                    })
+                        [timestamp]: session,
+
+                    },{merge: true})
                 })
                 setIsSubmitted(true)
                 setSelectedButtons([])
@@ -84,38 +89,55 @@ export default function Input(){
 
     return (
         <>
-            <h2>Choose your group</h2>
-            {groups.map(function(group, idx){
-                return(
-                    <button class="group-button" key={idx} onClick={()=>{setTargetGroup(group.group)}}>{group.group}</button>
-                )
-            })}
-            <h2>Take the roll:</h2>
-            {!isSubmitted&&(<div class="roll">
-                {/*map data from firebase (now as State) into buttons */}
-                {studentData.map(function(student, option){
-                    if (student.group == targetGroup){
-                        return( <button 
-                            //sexy interactive buttons
-                            class={"roll-button" + (selectedButtons.has(student) ? "-selected" : "")}
-                            key={option}
-                            type="button"
-                            /*when clicked, send option to the multiselectOption and select/deselect as necessary */
-                            onClick={()=>multiselectOption(student)}><p>{student.name}</p></button>)
-                    }
-                    
+            {showGroups &&(<div class="group-select">
+                <h2>Choose your group</h2>
+                {groups.map(function(group, idx){
+                    return(
+                        <button class={"group-button" + "-"+group.group} key={idx} onClick={()=>{setTargetGroup(group.group), setShowGroups(false)}}><p>{group.group}</p></button>
+                    )
                 })}
-                
-                <button onClick={handleSubmit} class="submit-roll-button"> 
-                <p>Submit</p>
-            </button>
             </div>)}
-            {isSubmitted&&(
-                <div class="roll">
-                    <h4>Roll Submitted Successfully!</h4>
-                    <button onClick={()=>{setIsSubmitted(false)}}>Return</button>
-                </div>
-            )}
+                
+                {!isSubmitted&&targetGroup != "" &&(
+                    <div class="roll">
+                        <div class="roll-header">
+                            <button class="back-button-roll"><i class="fa-solid fa-arrow-left" onClick={()=>{setTargetGroup(""), setShowGroups(true)}}></i></button>
+                            <h2>Take the roll:</h2>
+                        </div>
+                    {/*map data from firebase (now as State) into buttons */}
+                    {studentData.map(function(student, option){
+                        if (student.group == targetGroup){
+                            return( <button 
+                                //sexy interactive buttons
+                                class={"roll-button" + (selectedButtons.has(student) ? "-selected" : "") + "-"+targetGroup}
+                                key={option}
+                                type="button"
+                                /*when clicked, send option to the multiselectOption and select/deselect as necessary */
+                                onClick={()=>multiselectOption(student)}><p>{student.name}</p></button>)
+                        }
+                        
+                    })}
+                    <button class="edit-button" onClick={()=>{setAddNewStudent(!addNewStudent)}}><p>New Student?</p></button>
+                    {addNewStudent&&(<div class="add-student-roll">
+                        <h2>New student?</h2>
+                        <p>Let the coordinator know by entering their details here</p>
+                        <p>Student Name</p>
+                        <input value={name} onChange={(e)=>{setName(e.target.value)}} placeholder="Name"></input>
+                        <button class={"add-student-button-"+targetGroup} onClick={()=>{
+                            const newStudent = {name: name, group: targetGroup}
+                         multiselectOption(newStudent)
+                         }}><p>Add Student</p></button>
+                    </div>)}
+                    <button onClick={handleSubmit} class="submit-roll-button"> 
+                    <p>Submit</p>
+                </button>
+                </div>)}
+                {isSubmitted&&(
+                    <div class="roll">
+                        <h4>Roll Submitted Successfully!</h4>
+                        <button onClick={()=>{setIsSubmitted(false), setShowGroups(true)}}>Return</button>
+                    </div>
+                )}
         </>
     )
 }

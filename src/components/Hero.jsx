@@ -14,7 +14,7 @@ export default function Hero(props) {
             {!isAuthenticated &&(
                 <>
                     <p>Please login to view and manage classes</p>
-                    <button onClick={()=> {setShowModal1(true)}}>Login</button>
+                    <button class="login-button" onClick={()=> {setShowModal1(true)}}><p>Login</p></button>
                 </>
             )}
         </>

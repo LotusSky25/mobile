@@ -25,6 +25,7 @@ export default function Auth(props) {
             handleCloseModal()
         } catch (err) {
             console.log(err.message)
+            setError(true)
             setError(err.message)
         } finally {
             setIsAuthenticating(false)
@@ -34,7 +35,7 @@ export default function Auth(props) {
     return (
         <>
             <h2>{isRegistering ? 'Sign Up' : 'Login'}</h2>
-            {error && (<p>❌{error}</p>)}
+            {error && (<p>❌ Incorrect Email or Password</p>)}
             <p>{isRegistering ? 'Create an account' : 'Login to your account'}</p>
             <input value={email} onChange={(e)=>{setEmail(e.target.value)}} placeholder="Email"/>
             <input value={password} onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" type="password"/>
