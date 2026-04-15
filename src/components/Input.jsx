@@ -1,21 +1,26 @@
 //import all needed components
-import {useState, useEffect} from "react"
+import {useState, useEffect, useCallback} from "react"
 import Auth from './Auth'
-import { getDocs, collection, doc, setDoc} from "firebase/firestore"
+import { getDocs, collection, doc, query, setDoc, where } from "firebase/firestore"
 import { db } from "../../firebase"
 import { useAuth } from "../context/AuthContext"
 
 export default function Input(){
-    //define needed constants 
+    //define constants needed for storing data
     const [studentData, setStudentData] = useState([])
     const [selectedButtons, setSelectedButtons] = useState(new Set())
-    const [isSubmitted, setIsSubmitted] = useState(false)
     const [targetGroup, setTargetGroup] = useState("")
-    const [showGroups, setShowGroups] = useState(true)
     const [name, setName] = useState("")
     const [groups, setGroups] = useState([])
+    //define constants needed for conditional rendering
+    const [isLoading, setIsLoading] = useState(false)
+    const [isSubmitted, setIsSubmitted] = useState(false)
+    const [showGroups, setShowGroups] = useState(true)
     const [addNewStudent, setAddNewStudent] = useState(false)
-    const {session} = useAuth()
+    const [error, setError] = useState("")
+
+    const {session, globalData, isLoading: isAuthLoading} = useAuth()
+
     const multiselectOption = (option) => {
         //copy existing set
         const copy = new Set(selectedButtons);
@@ -31,9 +36,15 @@ export default function Input(){
         setSelectedButtons(copy)
     }
     //query data from firestore database
-    async function fetchData(col) {
+    //useCallback to prevent rerendering all the time (save entire function between renders)
+    const fetchData = useCallback(async(col) => {
         try {
-            const querySnapshot = await getDocs(collection(db, col))
+            if (!globalData?.code) return []
+            const scopedQuery = query(
+                collection(db, col),
+                where("code", "==", globalData.code)
+            )
+            const querySnapshot = await getDocs(scopedQuery)
             //empty array for data
             const data = []
             //push each student doc into the data array
@@ -44,26 +55,45 @@ export default function Input(){
         } catch (err) {
             console.log(err)
         }
-    }
+    }, [globalData?.code])
+    //guard to prevent crash in case the user is (somehow) logged in without a code at all
     useEffect(()=>{
+        setIsLoading(true)
+        if (isAuthLoading) return
+        if (!globalData?.code) {
+            setStudentData([])
+            setGroups([])
+            return
+        }
+
         async function getData(){
             //call fetchData to send query to firestore
             const data2 = await fetchData("students")
             const data3 = await fetchData("groups")
             //update useState to be mapped below
-            setStudentData(data2)
-            setGroups(data3)
+            //set empty if fetch failed/nothing to fetch to prevent crashes in render tree 
+            setStudentData(data2 || [])
+            setGroups(data3 || [])
         }
         getData()
+        setIsLoading(false)
         
-    }, [])
+    }, [isAuthLoading, globalData?.code, fetchData])
+
     async function handleSubmit() {
+            setError("")
             try {
+                setIsLoading(true)
+                if (!globalData?.code) {
+                    setError("Missing access code. Please sign in again.")
+                    return
+                }
                 const roll = Array.from(selectedButtons)
                 //create new doc for current session
                 const docRef = doc(db, 'sessions', session)
-                const res = await setDoc(docRef, {
+                await setDoc(docRef, {
                     //map wanted info about student to db
+                    code: globalData.code,
                     timestamp: Date.now(),
                     [targetGroup]: roll.map(student => ({
                         name: student.name,
@@ -74,23 +104,39 @@ export default function Input(){
                  roll.forEach(async(student) => {
                     const pRef = doc(db, "students", student.name, "history", "DEMO")
                     const timestamp = Date.now()
-                    const pRes = await setDoc(pRef, {
+                    await setDoc(pRef, {
                         [timestamp]: session,
 
                     },{merge: true})
                 })
+                //reset all the useStates
                 setIsSubmitted(true)
-                setSelectedButtons([])
+                setSelectedButtons(new Set())
                 setTargetGroup("")
             } catch (err) {
-                console.log(err.message)
+                console.log("Error fetching data:", err)
+                if (err?.code === "permission-denied") {
+                    setError("Insufficient database permissions.")
+                } else {
+                    setError("Unable to load data right now.")
+                }
+            } finally {
+                setIsLoading(false)
             }
         }
 
     return (
         <>
-            {showGroups &&(<div class="group-select">
+            {// print any errors that have been set above
+            error !="" && (
+                <div class="error">
+                    <p>❌ {error}</p>
+                </div>
+            )}
+            {//show the group selection 
+            showGroups &&(<div class="group-select">
                 <h2>Choose your group</h2>
+                {isLoading &&(<p>Loading...</p>)}
                 {groups.map(function(group, idx){
                     return(
                         <button class={"group-button" + "-"+group.group} key={idx} onClick={()=>{setTargetGroup(group.group), setShowGroups(false)}}><p>{group.group}</p></button>
@@ -101,7 +147,7 @@ export default function Input(){
                 {!isSubmitted&&targetGroup != "" &&(
                     <div class="roll">
                         <div class="roll-header">
-                            <button class="back-button-roll"><i class="fa-solid fa-arrow-left" onClick={()=>{setTargetGroup(""), setShowGroups(true)}}></i></button>
+                            <button class="back-button-roll"><i class="fa-solid fa-arrow-left" onClick={()=>{setTargetGroup(""), setShowGroups(true), setAddNewStudent(false)}}></i></button>
                             <h2>Take the roll:</h2>
                         </div>
                     {/*map data from firebase (now as State) into buttons */}
@@ -124,18 +170,20 @@ export default function Input(){
                         <p>Student Name</p>
                         <input value={name} onChange={(e)=>{setName(e.target.value)}} placeholder="Name"></input>
                         <button class={"add-student-button-"+targetGroup} onClick={()=>{
-                            const newStudent = {name: name, group: targetGroup}
+                            const newStudent = {name: name, group: targetGroup, status: "unregistered"}
+                        studentData.push(newStudent)
                          multiselectOption(newStudent)
                          }}><p>Add Student</p></button>
                     </div>)}
                     <button onClick={handleSubmit} class="submit-roll-button"> 
-                    <p>Submit</p>
+                    {isLoading ? (<p>Submitting...</p>):(<p>Submit</p>)}
                 </button>
                 </div>)}
                 {isSubmitted&&(
-                    <div class="roll">
+                    <div className="roll-submitted">
+                        <i className="fa-regular fa-circle-check fa-xl"></i>
                         <h4>Roll Submitted Successfully!</h4>
-                        <button onClick={()=>{setIsSubmitted(false), setShowGroups(true)}}>Return</button>
+                        <button className="edit-return-button" onClick={()=>{setIsSubmitted(false), setShowGroups(true)}}><i className="fa-solid fa-arrow-left"></i>Return</button>
                     </div>
                 )}
         </>

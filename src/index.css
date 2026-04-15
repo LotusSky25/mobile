@@ -3,11 +3,16 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
-  max-width: 80vw;
+  max-width: 60vw;
   width: 100%;
   overflow-x: hidden;
   margin: 0 auto;
   min-height: 95vh;
+}
+input[type=“text”],
+input[type=“submit”],
+.input-checkbox {
+-webkit-appearance: none;
 }
 
 header {
@@ -36,6 +41,22 @@ h2{
 h3{
   font-family: "Noto Sans", sans-serif;
   font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+h4 {
+  font-family: "Noto Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+h5 {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.5vh;
   font-weight: 400;
   font-style: normal;
   font-variation-settings:
@@ -80,7 +101,7 @@ img {
   opacity: 0.8;
   z-index: 99;
   border: none;
-  width: 100vw;
+  width: 100%;
   box-shadow: unset;
 }
 
@@ -89,7 +110,7 @@ img {
   top: 0;
   left: 0;
   height: 100vh;
-  width: 80vw;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,12 +133,35 @@ img {
   border-radius: 3%;
   gap: 1rem;
 }
+
+.addAdmin-content {
+  margin: 0;
+  padding: 0;
+
+}
 hr {
   background-color:grey;
   height: 1px;
   display: block;
   width: 96%;
- }
+}
+
+input {
+  border-radius: 6px;
+  padding: 1%;
+  size: 1vh;
+}
+
+.admin-input {
+  margin: 2%;
+  display: flex;
+  gap: 1rem;
+}
+
+.admin-input p{
+  margin: 0;
+}
+
 .graph {
   width: 50%;
   display: flex;
@@ -125,6 +169,31 @@ hr {
   justify-content: center;
   align-items: center;
 }
+
+.warning{
+  background-color: #ffe6b4;
+  border-radius: 10px;
+  padding: 2%;
+}
+.error {
+  background-color: #ffb4b4;
+  border-radius: 10px;
+  padding: 2%;
+}
+
+.add-student-roll {
+  padding: 1%;
+  margin: 1%;
+  border: 2px solid #15aee8;
+}
+
+.add-student-roll input{
+  width: 92%;
+  max-width: 400px;
+  margin: 2px;
+  padding: 3%;
+}
+
 .roll, 
 .group-select,
 .choose-action,
@@ -133,47 +202,79 @@ hr {
   flex-direction: column;
   justify-content: center;
   align-items:center;
-
 }
-.add-student-roll {
-  padding: 1%;
-  margin: 1%;
-  border: 2px solid #15aee8;
+.roll-submitted {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 2%;
+  padding: 2%;
+}
+.is-submitted {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items:center;
+  padding: 5%;
+}
+
+.is-submitted button:nth-of-type(1) {
+  margin: 2%;
+}
+.is-submitted button:nth-of-type(2) {
+  margin: 2%;
+  padding: 2%;
 }
 
 .group-button-Kowhai,
-.roll-button-selected-Kowhai,
-.add-student-button-Kowhai {
+.add-student-button-Kowhai,
+.roll-button-selected-Kowhai{
   background-color:#FFD60A;
   margin: 2px;
   width: 100%;
   max-width: 400px;
   border-radius: 10px;
+  box-shadow: 5px;
   border-color: #FFD60A;
   cursor: pointer;
 }
+.group-button-Kowhai:hover {
+  background-color: #ecc400e4;
+}
+
 .group-button-Magnolias,
-.roll-button-selected-Magnolias,
-.add-student-button-Magnolias {
+.add-student-button-Magnolias,
+.roll-button-selected-Magnolias{
   background-color: #FC62B9;
   margin: 2px;
   width: 100%;
   max-width: 400px;
   border-radius: 10px;
+  box-shadow: 5px;
   border-color: #FC62B9;
   cursor: pointer;
 }
+.group-button-Magnolias:hover {
+  background-color: #de4c9f;
+}
+
 .group-button-Oaks,
-.roll-button-selected-Oaks,
-.add-student-button-Oaks {
+.add-student-button-Oaks,
+.roll-button-selected-Oaks {
   background-color: #34C759;
   margin: 2px;
   width: 100%;
   max-width: 400px;
   border-radius: 10px;
+  box-shadow: 5px;
   border-color: #34C759;
   cursor: pointer;
 }
+.group-button-Oaks:hover {
+  background-color: #2aa549;
+}
+
 .roll-button-Kowhai,
 .roll-button-Magnolias,
 .roll-button-Oaks,
@@ -183,12 +284,12 @@ hr {
   max-width: 400px;
   border-radius: 10px;
   border-color: lightgrey;
-  cursor: pointer;
-
 }
+
 .roll-button-Kowhai:hover,
 .roll-button-Magnolias:hover,
-.roll-button-Oaks:hover {
+.roll-button-Oaks:hover,
+.edit-button:hover {
   box-shadow: 5px;
   background-color: lightgray;
   border-radius: 10px;
@@ -196,48 +297,74 @@ hr {
   cursor: pointer;
 }
 
-.delete-student-button {
+.delete-student-button{
   margin: 2px;
   width: 100%;
   max-width: 200px;
   background-color: #ffffff;
-  color:#ff0000;
+  color:#700707;
+  background-color: #fc6262;
   border-radius: 10px;
 }
+.delete-student-button:hover {
+  background-color: #fc6262;
+  cursor: pointer;
+}
+
 .submit-roll-button,
 .login-button, 
 .manage-students-button,
 .add-student-button,
-.logout-button {
+.logout-button,
+.addAdmin-button,
+.auth-buttons {
   margin: 2px;
   width: 100%;
   max-width: 200px;
   background-color: #15aee8;
-  border-color: #15aee8;
   border-radius: 10px;
+  border-color:#15aee8;
 }
+
+.addAdmin-button {
+  padding: 1%;
+  size: 1vh;
+  width: 100%;
+  max-width: 100px;
+}
+
 .add-student-button{
   padding: 0;
   margin-top: 6%;
 }
-.logout-button-text {
+
+.logout-button-text,
+.auth-buttons-text {
   padding: none;
   margin:none;
 }
+.auth-buttons {
+  max-width: 100%;
+}
+
 .submit-roll-button:hover,
 .login-button:hover,
-.manage-students-button:hover {
+.manage-students-button:hover,
+.addAdmin-button:hover,
+.logout-button:hover,
+.auth-buttons:hover {
   box-shadow: 5px;
   background-color: #1499ca;
-  border-color: #1499ca;
   border-radius: 10px;
   cursor: pointer;
 }
+
 .roll-header {
   display: flex;
   align-items: center;
   justify-content:flex-end;
 }
+
 .back-button-roll,
 .edit-return-button {
   background-color: white;
@@ -246,6 +373,7 @@ hr {
   border-style: none;
   font-size: medium;
 }
+
 .back-button-roll:hover,
 .edit-return-button:hover {
   background-color: white;
@@ -254,6 +382,7 @@ hr {
   cursor: pointer;
   font-size: medium;
 }
+
 th {
   font-family: "Noto Sans", sans-serif;
   font-optical-sizing: auto;
@@ -264,9 +393,11 @@ th {
   border-bottom: 1px solid black;
   background-color: #a2e3ec;
 }
+
 option:hover {
   background-color: #a2e3ec;
 }
+
 table{
   margin: 3%;
 }
@@ -276,29 +407,41 @@ table{
   align-items: center;
   justify-content: space-evenly;
 }
+
 .manage-students-header {
   display: flex;
   align-items: center;
   flex-direction:row;
   justify-content: center;
 }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-direction:row;
+  justify-content:space-between;
+}
+
 .select-timeframe,
 .select-group{
   margin: 5px;
 }
+
 .select-group{
   float: right;
 }
+
 .student-data{
   margin-left:10%;
 }
+
 .manage-students {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .display-add-student {
   display:flex;
   flex-direction:column;
 }
-
