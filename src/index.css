@@ -3,12 +3,13 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
-  max-width: 60vw;
   width: 100%;
+  max-width: 60vw;
   overflow-x: hidden;
   margin: 0 auto;
   min-height: 95vh;
 }
+
 input[type=“text”],
 input[type=“submit”],
 .input-checkbox {
@@ -84,6 +85,9 @@ main {
   flex-direction: column;
   gap: 1rem;
   flex: 1;
+}
+button {
+  color: black;
 }
 
 img {
