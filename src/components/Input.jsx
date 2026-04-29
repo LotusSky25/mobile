@@ -86,7 +86,8 @@ export default function Input(){
 
     async function updateHistory(roll) {
         roll.forEach(async(student) => {
-            if (student.registered) {
+            const exists = studentData.find((s) => s.id===student.id)
+            if (exists) {
                 const pRef = doc(db, "students", student.id)
                 await setDoc(pRef, {
                     sessions_attended: increment(1)
