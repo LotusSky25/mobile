@@ -13,6 +13,7 @@
 input[type=“text”],
 input[type=“submit”],
 .input-checkbox {
+appearance: none;
 -webkit-appearance: none;
 }
 
@@ -54,6 +55,7 @@ h4 {
   font-style: normal;
   font-variation-settings:
     "wdth" 100;
+  text-align:center;
 }
 h5 {
   font-family: "Noto Sans", sans-serif;
@@ -113,7 +115,7 @@ img {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   display: flex;
   flex-direction: column;
@@ -121,14 +123,17 @@ img {
   justify-content: center;
   z-index: 100;
   padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 .modal-content {
   position: relative;
   z-index: 101;
   max-width: 600px;
-  width: 100%;
+  width: min(100%, 600px);
   margin: 0 auto;
-  min-height: 400px;
+  min-height: 0;
+  max-height: calc(100dvh - 2rem);
   border: 1px solid black;
   background: white;
   padding: 1rem;
@@ -136,7 +141,10 @@ img {
   flex-direction: column;
   border-radius: 3%;
   gap: 1rem;
+  box-sizing: border-box;
+  overflow-y: none;
 }
+
 
 .addAdmin-content {
   margin: 0;

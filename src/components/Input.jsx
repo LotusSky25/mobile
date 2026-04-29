@@ -1,7 +1,7 @@
 //import all needed components
 import {useState, useEffect, useCallback} from "react"
 import Auth from './Auth'
-import { getDocs, collection, doc, query, setDoc, where } from "firebase/firestore"
+import { getDocs, getDoc, collection, doc, query, setDoc, where, increment, addDoc } from "firebase/firestore"
 import { db } from "../../firebase"
 import { useAuth } from "../context/AuthContext"
 
@@ -58,28 +58,58 @@ export default function Input(){
     }, [globalData?.code])
     //guard to prevent crash in case the user is (somehow) logged in without a code at all
     useEffect(()=>{
-        setIsLoading(true)
         if (isAuthLoading) return
         if (!globalData?.code) {
             setStudentData([])
             setGroups([])
+            setIsLoading(false)
             return
         }
 
         async function getData(){
-            //call fetchData to send query to firestore
-            const data2 = await fetchData("students")
-            const data3 = await fetchData("groups")
-            //update useState to be mapped below
-            //set empty if fetch failed/nothing to fetch to prevent crashes in render tree 
-            setStudentData(data2 || [])
-            setGroups(data3 || [])
+            setIsLoading(true)
+            try {
+                //call fetchData to send query to firestore
+                const data2 = await fetchData("students")
+                const data3 = await fetchData("groups")
+                //update useState to be mapped below
+                //set empty if fetch failed/nothing to fetch to prevent crashes in render tree 
+                setStudentData(data2 || [])
+                setGroups(data3 || [])
+            } finally {
+                setIsLoading(false)
+            }
         }
         getData()
-        setIsLoading(false)
         
     }, [isAuthLoading, globalData?.code, fetchData])
 
+    async function updateHistory(roll) {
+        roll.forEach(async(student) => {
+            if (student.registered) {
+                const pRef = doc(db, "students", student.id)
+                await setDoc(pRef, {
+                    sessions_attended: increment(1)
+                },{merge: true})
+            } else {
+                try {    
+                    //add new student document
+                    const colRef = collection(db, "students")
+                    await addDoc(colRef, {
+                        name: student.name,
+                        group: student.group,
+                        registered: false,
+                        sessions_since_registered: 1,
+                        sessions_attended: 1,
+                        code: globalData?.code || ""
+                    }, {merge: true})
+                } catch(err) {
+                    console.log(err)
+                    setError("Unable to add student right now.")
+                }
+            }
+        })
+    }
     async function handleSubmit() {
             setError("")
             try {
@@ -91,28 +121,35 @@ export default function Input(){
                 const roll = Array.from(selectedButtons)
                 //create new doc for current session
                 const docRef = doc(db, 'sessions', session)
-                await setDoc(docRef, {
-                    //map wanted info about student to db
-                    code: globalData.code,
-                    timestamp: Date.now(),
-                    [targetGroup]: roll.map(student => ({
-                        name: student.name,
-                        group: student.group
-                    }))
-                }, {merge: true})
-                //update each student's  
-                 roll.forEach(async(student) => {
-                    const pRef = doc(db, "students", student.name, "history", "DEMO")
-                    const timestamp = Date.now()
-                    await setDoc(pRef, {
-                        [timestamp]: session,
+                const sessionSnap = await getDoc(docRef)
+                const groupAttendance = roll.map(student => ({
+                    name: student.name,
+                    group: student.group,
+                    registered: student.registered
+                }))
 
-                    },{merge: true})
-                })
+                if (!sessionSnap.exists()) {
+                    await setDoc(docRef, {
+                        // set processing flags only when the session doc is first created
+                        code: globalData.code,
+                        tallyProcessed: false,
+                        timestamp: Date.now(),
+                        [targetGroup]: groupAttendance,
+                    })
+                } else {
+                    // do not reset tallyProcessed on subsequent writes to the same session
+                    await setDoc(docRef, {
+                        [targetGroup]: groupAttendance,
+                    }, {merge: true})
+                }
+                //update each student's history
+                await updateHistory(roll)
+
                 //reset all the useStates
                 setIsSubmitted(true)
                 setSelectedButtons(new Set())
                 setTargetGroup("")
+
             } catch (err) {
                 console.log("Error fetching data:", err)
                 if (err?.code === "permission-denied") {
@@ -170,7 +207,7 @@ export default function Input(){
                         <p>Student Name</p>
                         <input value={name} onChange={(e)=>{setName(e.target.value)}} placeholder="Name"></input>
                         <button class={"add-student-button-"+targetGroup} onClick={()=>{
-                            const newStudent = {name: name, group: targetGroup, status: "unregistered"}
+                            const newStudent = {name: name, group: targetGroup, registered: false}
                         studentData.push(newStudent)
                          multiselectOption(newStudent)
                          }}><p>Add Student</p></button>
