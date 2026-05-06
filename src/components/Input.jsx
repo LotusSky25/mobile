@@ -121,6 +121,7 @@ export default function Input(){
                     return
                 }
                 const roll = Array.from(selectedButtons)
+                console.log('test')
                 //create new doc for current session
                 const docRef = doc(db, 'sessions', session)
                 const sessionSnap = await getDoc(docRef)
@@ -129,7 +130,8 @@ export default function Input(){
                     group: student.group,
                     registered: student.registered
                 }))
-
+                console.log(globalData?.code)
+                console.log(groupAttendance)
                 if (!sessionSnap.exists()) {
                     await setDoc(docRef, {
                         // set processing flags only when the session doc is first created
