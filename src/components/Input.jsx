@@ -90,7 +90,8 @@ export default function Input(){
             if (exists) {
                 const pRef = doc(db, "students", student.id)
                 await setDoc(pRef, {
-                    sessions_attended: increment(1)
+                    sessions_attended: increment(1),
+                    code: globalData.code
                 },{merge: true})
             } else {
                 try {    
@@ -141,6 +142,7 @@ export default function Input(){
                     // do not reset tallyProcessed on subsequent writes to the same session
                     await setDoc(docRef, {
                         [targetGroup]: groupAttendance,
+                        code: globalData.code
                     }, {merge: true})
                 }
                 //update each student's history
@@ -192,7 +194,7 @@ export default function Input(){
                     {studentData.map(function(student, option){
                         if (student.group == targetGroup){
                             return( <button 
-                                //sexy interactive buttons
+                                // interactive buttons
                                 class={"roll-button" + (selectedButtons.has(student) ? "-selected" : "") + "-"+targetGroup}
                                 key={option}
                                 type="button"
