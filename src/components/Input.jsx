@@ -91,7 +91,7 @@ export default function Input(){
                 const pRef = doc(db, "students", student.id)
                 await setDoc(pRef, {
                     sessions_attended: increment(1),
-                    code: globalData.code
+                    code: globalData?.code || ""
                 },{merge: true})
             } else {
                 try {    
@@ -133,7 +133,7 @@ export default function Input(){
                 if (!sessionSnap.exists()) {
                     await setDoc(docRef, {
                         // set processing flags only when the session doc is first created
-                        code: globalData.code,
+                        code: globalData?.code || "",
                         tallyProcessed: false,
                         timestamp: Date.now(),
                         [targetGroup]: groupAttendance,
@@ -142,7 +142,7 @@ export default function Input(){
                     // do not reset tallyProcessed on subsequent writes to the same session
                     await setDoc(docRef, {
                         [targetGroup]: groupAttendance,
-                        code: globalData.code
+                        code: globalData?.code || ""
                     }, {merge: true})
                 }
                 //update each student's history
