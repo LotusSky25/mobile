@@ -85,8 +85,10 @@ export default function Input(){
     }, [isAuthLoading, globalData?.code, fetchData])
 
     async function updateHistory(roll) {
-        roll.forEach(async(student) => {
-            const exists = studentData.find((s) => s.id===student.id)
+        console.log(roll)
+        await Promise.all(roll.map(async(student) => {
+            console.log(student)
+            const exists = studentData.find((s) => s.name===student.name)
             if (exists) {
                 const pRef = doc(db, "students", student.id)
                 await setDoc(pRef, {
@@ -99,7 +101,7 @@ export default function Input(){
                     const colRef = collection(db, "students")
                     await addDoc(colRef, {
                         name: student.name,
-                        group: student.group,
+                        group: targetGroup,
                         registered: false,
                         sessions_since_registered: 1,
                         sessions_attended: 1,
@@ -110,7 +112,7 @@ export default function Input(){
                     setError("Unable to add student right now.")
                 }
             }
-        })
+        }))
     }
     async function handleSubmit() {
             setError("")
@@ -121,17 +123,31 @@ export default function Input(){
                     return
                 }
                 const roll = Array.from(selectedButtons)
-                console.log('test')
-                //create new doc for current session
+                //filter new students
+                const pendingStudents = roll.filter((student) => student.isPending)
+                //create student document for each new student
+                for (const pendingStudent of pendingStudents) {
+                    const docRef = await addDoc(collection(db, "students"), {
+                        name: pendingStudent.name,
+                        group: pendingStudent.group,
+                        registered: false,
+                        sessions_since_registered: 1,
+                        sessions_attended: 1,
+                        code: globalData?.code || ""
+                    })
+                    pendingStudent.id = docRef.id
+                    pendingStudent.isPending = false
+                }
+                //check if session already exists
                 const docRef = doc(db, 'sessions', session)
                 const sessionSnap = await getDoc(docRef)
+                //format attendance
                 const groupAttendance = roll.map(student => ({
                     name: student.name,
-                    group: student.group,
+                    group: targetGroup,
                     registered: student.registered
                 }))
-                console.log(globalData?.code)
-                console.log(groupAttendance)
+                //if session exists, overwrite it, but don't increment  tally again
                 if (!sessionSnap.exists()) {
                     await setDoc(docRef, {
                         // set processing flags only when the session doc is first created
@@ -140,6 +156,7 @@ export default function Input(){
                         timestamp: Date.now(),
                         [targetGroup]: groupAttendance,
                     })
+                    //if session doesn't exist, create session and signal cloud function to increment tally
                 } else {
                     // do not reset tallyProcessed on subsequent writes to the same session
                     await setDoc(docRef, {
@@ -148,7 +165,7 @@ export default function Input(){
                     }, {merge: true})
                 }
                 //update each student's history
-                await updateHistory(roll)
+                await updateHistory(roll.filter((student) => !student.isPending))
 
                 //reset all the useStates
                 setIsSubmitted(true)
@@ -206,15 +223,20 @@ export default function Input(){
                         
                     })}
                     <button class="edit-button" onClick={()=>{setAddNewStudent(!addNewStudent)}}><p>New Student?</p></button>
+                    {/*display add new student form */}
                     {addNewStudent&&(<div class="add-student-roll">
                         <h2>New student?</h2>
                         <p>Let the coordinator know by entering their details here</p>
                         <p>Student Name</p>
                         <input value={name} onChange={(e)=>{setName(e.target.value)}} placeholder="Name"></input>
                         <button class={"add-student-button-"+targetGroup} onClick={()=>{
-                            const newStudent = {name: name, group: targetGroup, registered: false}
-                        studentData.push(newStudent)
+                            {/*create new student object locally, flag as pending*/}
+                            const newStudent = {name: name.trim(), group: targetGroup, registered: false, isPending: true}
+                        {/*update student data to include new student */}
+                         setStudentData((currentStudents) => [...currentStudents, newStudent])
                          multiselectOption(newStudent)
+                         setName("")
+                         setAddNewStudent(false)
                          }}><p>Add Student</p></button>
                     </div>)}
                     <button onClick={handleSubmit} class="submit-roll-button"> 
